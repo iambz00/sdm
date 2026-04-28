@@ -37,17 +37,17 @@ import type { DataTableColumnDef, ExtendedColumnFilter, } from "@/components/nik
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { SearchX, UserSearch } from "lucide-react"
+import { SearchX, UserSearch, Info } from "lucide-react"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import {
   Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import {
-  Download, Trash2, ChevronRight, ChevronDown, MoreHorizontal,
-} from "lucide-react"
+import { DownloadIcon, CaretDownIcon, CaretRightIcon, TrashIcon, PencilSimpleIcon, DotsThreeOutlineIcon } from "@phosphor-icons/react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { getCurrentFilters, getHandleFiltersChange, FilterParameter, FilterToolbar } from "@/components/niko-table/custom/filter-toolbar"
+import {  } from "@phosphor-icons/react"
 
 const STATUS_COLOR_CLASSNAME = {
   "STS_NORMAL"  : "border-green-500",
@@ -58,6 +58,17 @@ const STATUS_COLOR_CLASSNAME = {
   "STS_MISSING" : "border-red-500", // LOST 로 수정
   "STS_REPAIR"  : "border-yellow-300",  // 삭제
 }
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  weekday: "short",
+  hour12: false,
+  hour: "numeric",
+  minute: "numeric",
+  timeZone: "Asia/Seoul",
+})
 
 // Expanded row content component
 function ExpandedRowContent({ device }: { device: Device }) {
@@ -86,16 +97,24 @@ function ExpandedRowContent({ device }: { device: Device }) {
 }
 
 // Product details component for sidebar
-function DeviceDetails({ device }: { device: Device }) {
+function DeviceDetails({
+  device,
+  resolver,
+}: {
+  device: Device,
+  resolver: Record<string, Record<string, string>>,
+}) {
   if (!device) return null
 
   return (
     <ScrollArea className="h-full">
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-6">
         <div>
-          <h2 className="text-2xl font-bold">{device.asset_number}</h2>
+          <h2 className="text-2xl font-bold">
+            {device.asset_number}
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {'label'}
+            label
           </p>
         </div>
 
@@ -103,40 +122,26 @@ function DeviceDetails({ device }: { device: Device }) {
 
         <div className="space-y-4">
           <div>
-            <h3 className="mb-2 text-sm font-semibold">Details</h3>
-            <div className="space-y-2 text-sm">
+            <h3 className="mb-2 text-sm font-semibold">기기 상태</h3>
+            <div className="space-y-2 text-sm pl-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Brand:</span>
-                <span>
-                  
-                </span>
+                <span className="text-muted-foreground">조직:</span>
+                <span className="">{resolver.org[device.organization_code] || device.organization_code}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Price:</span>
-                <span className="font-medium">{device.serial_number}</span>
+                <span className="text-muted-foreground">용도:</span>
+                <span className="">{resolver.usageGroup[device.usage_group_id] || device.usage_group_id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Stock:</span>
-                <span>
-                  {device.mac_address}
-                </span>
+                <span className="text-muted-foreground">상태:</span>
+                <span className="">{resolver.code[device.status_code] || device.status_code}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Rating:</span>
+                <span className="text-muted-foreground">부가 정보:</span>
                 <div className="flex items-center gap-1">
                   <span>{JSON.stringify(device.metadata)}</span>
                   <span className="text-yellow-500">★</span>
                 </div>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge variant="default">
-                  test
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Release Date:</span>
-                <span>{device.updated_at.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -144,7 +149,57 @@ function DeviceDetails({ device }: { device: Device }) {
           <Separator />
 
           <div>
-            <h3 className="mb-2 text-sm font-semibold">Description</h3>
+            <h3 className="mb-2 text-sm font-semibold">세부 정보</h3>
+            <div className="space-y-2 text-sm pl-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">S/N:</span>
+                <span>
+                  {device.serial_number}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">WiFi MAC:</span>
+                <span>
+                  {device.mac_address}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">모델명:</span>
+                <span>
+                  {device.model_id}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">도입 차수:</span>
+                <span>
+                  {device.distribution_id}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">등록일:</span>
+                <span>
+                  {DATE_TIME_FORMATTER.format(new Date(device.created_at))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">최종 수정자:</span>
+                <span>
+                  {device.updated_by || "관리자"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">최종 수정:</span>
+                <span>
+                  {DATE_TIME_FORMATTER.format(new Date(device.updated_at))}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">도입 정보</h3>
             <p className="text-sm text-muted-foreground">
               {device.organization_code}
             </p>
@@ -163,11 +218,83 @@ function DeviceDetails({ device }: { device: Device }) {
   )
 }
 
+interface AlertType {
+  id: number;
+  payload: string;
+}
+
+interface TimedAlertProps {
+  id: number;
+  icon?: React.ReactNode;
+  title: string;
+  description: React.ReactNode;
+  timer?: number;
+  onClose: (id: number) => void;
+}
+
+const TimedAlert = ({ id, icon, title, description, timer = 5000, onClose }: TimedAlertProps) => {
+  useEffect(() => {
+    if (timer <= 0) return;
+    const timeout = setTimeout(() => onClose(id), timer);
+    return () => clearTimeout(timeout);
+  }, [id, timer, onClose]);
+
+  return (
+    <Alert
+      className="w-full max-w-lg pointer-events-auto flex flex-col items-start gap-2 border-primary/50 bg-background/95 shadow-2xl backdrop-blur animate-in fade-in slide-in-from-top-5"
+    >
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-2">
+          {icon}
+          <AlertTitle className="m-0 font-bold text-primary">{title}</AlertTitle>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onClose(id)}
+          className="h-auto p-1 text-muted-foreground hover:text-foreground"
+        >
+          닫기
+        </Button>
+      </div>
+      <AlertDescription className="w-full text-sm">
+        {description}
+      </AlertDescription>
+    </Alert>
+  );
+};
+
 // Bulk actions component
 function BulkActions() {
   const { table } = useDataTable<Device>()
   const selectedRows = table.getFilteredSelectedRowModel().rows
   const selectedCount = selectedRows.length
+  const [alerts, setAlerts] = useState<AlertType[]>([])
+
+  const handleBulkEdit = () => {
+    console.log(
+      "Listing:",
+      selectedRows.map(row => row.original.id),
+    )
+    table.resetRowSelection()
+  }
+
+  const handleBulkTest = () => {
+    const id = Date.now()
+    const newAlert = {
+      id,
+      payload: selectedRows.map(row => row.original.id).toString(),
+    }
+    setAlerts((prev) => {
+      const next = [...prev, newAlert]
+      return next.length > 5 ? next.slice(1) : next
+    })
+
+    // 5초 후 자동으로 해당 알림 삭제
+    setTimeout(() => {
+      setAlerts((prev) => prev.filter((alert) => alert.id !== id))
+    }, 5000)
+  }
 
   const handleBulkExport = () => {
     exportTableToCSV(table, {
@@ -191,31 +318,55 @@ function BulkActions() {
   }
 
   return (
-    <DataTableSelectionBar
-      selectedCount={selectedCount}
-      onClear={() => table.resetRowSelection()}
-    >
-      <Button size="sm" variant="outline" onClick={handleBulkExport}>
-        <Download className="mr-2 h-4 w-4" />
-        Export Selected
-      </Button>
-      <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
-        <Trash2 className="mr-2 h-4 w-4" />
-        Delete Selected
-      </Button>
-    </DataTableSelectionBar>
+    <>
+      <div className="fixed inset-x-0 top-8 z-50 flex flex-col items-center gap-3 px-4 pointer-events-none">
+        {alerts.map((alert) => (
+          <TimedAlert
+            key={alert.id}
+            id={alert.id}
+            icon={<Info className="h-4 w-4 text-primary" />}
+            title={`테스트 결과 (${alert.payload.length}건)`}
+            timer={5000}
+            onClose={(id) => setAlerts((prev) => prev.filter((a) => a.id !== id))}
+            description={
+              <div className="flex flex-wrap gap-2 pt-2">
+                {alert.payload}
+              </div>
+            }
+          />
+        ))}
+      </div>
+      <DataTableSelectionBar
+        selectedCount={selectedCount}
+        onClear={() => table.resetRowSelection()}
+      >
+        <Button size="sm" variant="outline" onClick={handleBulkEdit}>
+          <PencilSimpleIcon className="mr-1 h-4 w-4" />
+          선택 수정
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleBulkTest}>
+          테스트
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleBulkExport}>
+          <DownloadIcon className="mr-1 h-4 w-4" />
+          엑셀 다운
+        </Button>
+        <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
+          <TrashIcon className="mr-1 h-4 w-4" />
+          Delete Selected
+        </Button>
+      </DataTableSelectionBar>
+    </>
   )
 }
 
 
 export default function DeviceTable({
-  codeList,
-  deviceList,
-  orgList
+  watchList,
+  watchObject
 }: {
-  codeList: Code[],
-  deviceList: Device[],
-  orgList: Organization[]
+  watchList: string[],  // FetchType[]
+  watchObject: Record<string, any>
 }) {
   // 하이드레이션 에러 및 서버 사이드 상태 업데이트 방지를 위한 마운트 상태 관리
   const [isMounted, setIsMounted] = useState(false)
@@ -224,7 +375,7 @@ export default function DeviceTable({
   }, [])
 
   // Controlled state management
-  const [data] = useState<Device[]>(deviceList)
+  const [data] = useState<Device[]>(watchObject.device)
   const [globalFilter, setGlobalFilter] = useState<string | object>("")
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -253,8 +404,8 @@ export default function DeviceTable({
   ]
 
   const statusGroupOptions = useMemo(() => 
-    codeList.filter(code => code.group_code === "GRP_STATUS").map(code => ({ "label": code.name, "value": code.code})),
-    [codeList]
+    watchObject.code.filter(code => code.group_code === "GRP_STATUS").map(code => ({ "label": code.name, "value": code.code})),
+    [watchObject.code]
   )
 
   const FilterParameters: FilterParameter<Device>[] = [
@@ -280,16 +431,22 @@ export default function DeviceTable({
   // Handler for filter menu
   const handleFiltersChange = getHandleFiltersChange<Device>(setColumnFilters, setGlobalFilter, setPagination)
 
-  // Resolve codes
-  const resolveCode = useMemo(() => 
-    Object.fromEntries(codeList.map(code => [code.code, code.name])),
-    [codeList]
-  );
-  // Resolve organizations
-  const resolveOrg = useMemo(() => 
-    Object.fromEntries(orgList.map(org => [org.code, org.name])),
-    [orgList]
-  );
+  // Resolve id to name
+  // const resolver2 = useMemo(() => ({
+  //     code : Object.fromEntries(watchObject.code.map(code => [code.code, code.name])),
+  //     org  : Object.fromEntries(watchObject.org.map(org => [org.code, org.name])),
+  //     usageGroup  : Object.fromEntries(watchObject.usageGroup.map(usageGroup => [usageGroup.id, usageGroup.name])),
+  //     distribution  : Object.fromEntries(watchObject.distribution.map(distribution => [distribution.id, distribution.name])),
+  //     distributionInfo  : Object.fromEntries(watchObject.distributionInfo.map(distributionInfo => [distributionInfo.id, distributionInfo.name])),
+  //   }),
+  //   [watchObject.code, watchObject.org]
+  // )
+
+  const resolvr = watchList.map(
+    key => [key, Object.fromEntries(watchObject[key].map(subkey => [subkey.code || subkey.id, subkey.name]))]
+  )
+
+  const resolver = Object.fromEntries(resolvr)
 
   // Define columns with all features
   const columns: DataTableColumnDef<Device>[] = useMemo(
@@ -330,9 +487,9 @@ export default function DeviceTable({
               onClick={row.getToggleExpandedHandler()}
             >
               {row.getIsExpanded() ? (
-                <ChevronDown className="h-4 w-4" />
+                <CaretDownIcon className="h-4 w-4" />
               ) : (
-                <ChevronRight className="h-4 w-4" />
+                <CaretRightIcon className="h-4 w-4" />
               )}
             </Button>
           )
@@ -364,7 +521,7 @@ export default function DeviceTable({
           variant: FILTER_VARIANTS.TEXT,
         },
         enableColumnFilter: true,
-        accessorFn: (row: Device) => resolveOrg[row.organization_code],
+        accessorFn: (row: Device) => resolver.org[row.organization_code],
       },
       {
         accessorKey: "usage_group_id",
@@ -443,7 +600,7 @@ export default function DeviceTable({
             variant="outline"
             className={STATUS_COLOR_CLASSNAME[row.original.status_code as keyof typeof STATUS_COLOR_CLASSNAME]}
           >
-            {resolveCode[row.getValue("status_code") as string]}
+            {resolver.code[row.getValue("status_code") as string]}
           </Badge>
         ),
         enableColumnFilter: true,
@@ -458,7 +615,7 @@ export default function DeviceTable({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
+                    <DotsThreeOutlineIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -553,7 +710,7 @@ export default function DeviceTable({
             <DataTableHeader />
             <DataTableBody
               onRowClick={(device: Device) => {
-                selectedDevice? setSelectedDevice(null) : setSelectedDevice(device)
+                (selectedDevice === device)? setSelectedDevice(null) : setSelectedDevice(device)
               }}
             >
               <DataTableEmptyBody>
@@ -561,26 +718,17 @@ export default function DeviceTable({
                   <DataTableEmptyIcon>
                     <UserSearch className="size-12" />
                   </DataTableEmptyIcon>
-                  <DataTableEmptyTitle>No products found</DataTableEmptyTitle>
-                  <DataTableEmptyDescription>
-                    Get started by adding your first product to the inventory.
-                  </DataTableEmptyDescription>
+                  <DataTableEmptyTitle> </DataTableEmptyTitle>
+                  <DataTableEmptyDescription> </DataTableEmptyDescription>
                 </DataTableEmptyMessage>
                 <DataTableEmptyFilteredMessage>
                   <DataTableEmptyIcon>
                     <SearchX className="size-12" />
                   </DataTableEmptyIcon>
                   <DataTableEmptyTitle>No matches found</DataTableEmptyTitle>
-                  <DataTableEmptyDescription>
-                    Try adjusting your filters or search to find what
-                    you&apos;re looking for.
-                  </DataTableEmptyDescription>
+                  <DataTableEmptyDescription> </DataTableEmptyDescription>
                 </DataTableEmptyFilteredMessage>
-                <DataTableEmptyActions>
-                  <Button onClick={() => alert("Add product clicked")}>
-                    Add Product
-                  </Button>
-                </DataTableEmptyActions>
+                <DataTableEmptyActions> </DataTableEmptyActions>
               </DataTableEmptyBody>
             </DataTableBody>
           </DataTable>
@@ -596,13 +744,13 @@ export default function DeviceTable({
             >
               <DataTableAsideContent width="w-1/3 min-w-80">
                 <DataTableAsideHeader>
-                  <DataTableAsideTitle>Product Details</DataTableAsideTitle>
+                  <DataTableAsideTitle>기기 정보</DataTableAsideTitle>
                   <DataTableAsideDescription>
-                    View detailed information
+                    {/* View detailed information */}
                   </DataTableAsideDescription>
-                  <DataTableAsideClose />
+                  {/* <DataTableAsideClose /> */}
                 </DataTableAsideHeader>
-                <DeviceDetails device={selectedDevice} />
+                <DeviceDetails device={selectedDevice} resolver={resolver} />
               </DataTableAsideContent>
             </DataTableAside>
           )}

@@ -43,13 +43,13 @@ FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM organizations o 
             WHERE o.code = usage_groups.organization_code 
-            AND o.path <@ get_my_organization_path()
+            AND o.path @> get_my_organization_path()
         )
     )
 );
 
 -- [Usage Groups] 본인 소속 조직의 그룹만 관리
-CREATE POLICY "Manage sub-usage-groups" ON usage_groups
+CREATE POLICY "Manage own usage-groups" ON usage_groups
 FOR ALL USING (
     is_approved() AND (
         get_my_role() = 'SYSTEM_ADMIN' OR

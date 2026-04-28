@@ -2,7 +2,8 @@
 -- =================================================================================
 -- 인덱스
 -- =================================================================================
-DROP INDEX IF EXISTS idx_organizations_path;
+
+DROP INDEX IF EXISTS idx_organizations_path_gist;
 CREATE INDEX idx_organizations_path_gist ON organizations USING gist (path);
 -- CREATE INDEX idx_organizations_parent_code ON organizations (parent_code);
 
@@ -21,5 +22,6 @@ DROP INDEX IF EXISTS idx_devices_metadata_gin;
 CREATE INDEX idx_devices_metadata_gin ON devices USING gin (metadata);
 
 -- 인덱스 생성 (조회 성능 최적화)
+DROP INDEX IF EXISTS idx_devices_log_device_id;
 CREATE INDEX idx_devices_log_device_id ON devices_log(device_id);
 

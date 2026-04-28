@@ -1,8 +1,6 @@
-// import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { Device } from "../types";
 
-// export async function fetchCodesRaw() {
 export async function fetchDevices() {
   const supabase = await createClient();
   const { data } = await supabase
@@ -16,4 +14,3 @@ export async function fetchDevices() {
   return (data as Device[]) || [];
 }
 
-// export const fetchCodes = cache(fetchCodesRaw);

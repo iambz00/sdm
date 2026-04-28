@@ -2,7 +2,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Organization } from "@/common/types";
 
-// export async function fetchCodesRaw() {
 export async function fetchOrganizations() {
   const supabase = await createClient();
   const { data } = await supabase
@@ -12,8 +11,6 @@ export async function fetchOrganizations() {
 
   return (data as Organization[]) || [];
 }
-
-// export const fetchCodes = cache(fetchCodesRaw);
 
 export async function fetchOrganizationsFromGroup(group_code: string = "") {
   const supabase = await createClient();
