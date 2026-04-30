@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Code, Device, DeviceLog, Organization, Model, UsageGroup, Distribution, DistributionInfo } from "@/common/types";
 import {
-  FetchType, ReturnType, fetch
+  FetchType, fetch
  } from "@/common/fetch/server";
 
 import DeviceTable from "./table";
@@ -11,10 +11,10 @@ async function DeviceManageContent() {
   const fetched = await fetch(watchList)
   // const watchObject = Object.fromEntries(watchList.map((fetchType, index) => [fetchType, fetched[index]]))
   const watchObject = {
-    code: fetched[0] as Code[],
+    code:   fetched[0] as Code[],
     device: fetched[1] as Device[],
-    org: fetched[2] as Organization[],
-    usageGroup: fetched[3] as UsageGroup[],
+    org:    fetched[2] as Organization[],
+    usageGroup:   fetched[3] as UsageGroup[],
     distribution: fetched[4] as Distribution[],
     distributionInfo: fetched[5] as DistributionInfo[],
   }

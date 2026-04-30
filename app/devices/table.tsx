@@ -1,6 +1,6 @@
 "use client";
 
-import { Device, Code, Organization } from "@/common/types";
+import { Device, Code, Organization, UsageGroup, Distribution, DistributionInfo } from "@/common/types";
 import { cn } from "@/lib/utils"
 import { useState, useCallback, useMemo, useEffect } from "react"
 import type { 
@@ -395,17 +395,16 @@ export default function DeviceTable({
   const [selectedDevice, setSelectedDevice] =  useState<Device | null>(null)
 
   // Filters
-  let usageGroupOptions
-  usageGroupOptions = [
-    { label: "1학년 1반", value: "1" },
-    { label: "컴퓨터실", value: "2" },
-    { label: "3학년 2반", value: "3" },
-    { label: "도서관 대여", value: "4" },
-  ]
-
-  const statusGroupOptions = useMemo(() => 
-    watchObject.code.filter(code => code.group_code === "GRP_STATUS").map(code => ({ "label": code.name, "value": code.code})),
-    [watchObject.code]
+  const filterGroups =  useMemo(() => ({
+      "statusCode":
+        watchObject.code
+          .filter((code: Code) => code.group_code === "GRP_STATUS")
+          .map((code: Code) => ({ "label": code.name, "value": code.code})),
+      "usageGroup":
+        watchObject.usageGroup
+          .map((usageGroup: UsageGroup) => ({ "label": usageGroup.name, "value": usageGroup.id})),
+    }),
+    []
   )
 
   const FilterParameters: FilterParameter<Device>[] = [
@@ -413,14 +412,14 @@ export default function DeviceTable({
       type: "DataTableFacetedFilter",
       accessorKey: "usage_group_id",
       title: "용도구분",
-      options: usageGroupOptions,
+      options: filterGroups.usageGroup,
       multiple: true,
     },
     {
       type: "DataTableFacetedFilter",
       accessorKey: "status_code",
       title: "상태",
-      options: statusGroupOptions,
+      options: filterGroups.statusCode,
       multiple: true,
     }
   ]
@@ -431,22 +430,17 @@ export default function DeviceTable({
   // Handler for filter menu
   const handleFiltersChange = getHandleFiltersChange<Device>(setColumnFilters, setGlobalFilter, setPagination)
 
-  // Resolve id to name
-  // const resolver2 = useMemo(() => ({
-  //     code : Object.fromEntries(watchObject.code.map(code => [code.code, code.name])),
-  //     org  : Object.fromEntries(watchObject.org.map(org => [org.code, org.name])),
-  //     usageGroup  : Object.fromEntries(watchObject.usageGroup.map(usageGroup => [usageGroup.id, usageGroup.name])),
-  //     distribution  : Object.fromEntries(watchObject.distribution.map(distribution => [distribution.id, distribution.name])),
-  //     distributionInfo  : Object.fromEntries(watchObject.distributionInfo.map(distributionInfo => [distributionInfo.id, distributionInfo.name])),
-  //   }),
-  //   [watchObject.code, watchObject.org]
-  // )
-
-  const resolvr = watchList.map(
-    key => [key, Object.fromEntries(watchObject[key].map(subkey => [subkey.code || subkey.id, subkey.name]))]
+  const resolver = Object.fromEntries(
+    watchList
+      .filter(fetchType => !["device", "devicelog"].includes(fetchType))
+      .map(
+        fetchType => [
+          fetchType,
+          Object.fromEntries(
+            watchObject[fetchType].map(
+              (subkey: { code?: string; id?: number; name: string; }) => [subkey.code || subkey.id, subkey.name]
+    ))])
   )
-
-  const resolver = Object.fromEntries(resolvr)
 
   // Define columns with all features
   const columns: DataTableColumnDef<Device>[] = useMemo(
@@ -533,7 +527,7 @@ export default function DeviceTable({
                 variant={FILTER_VARIANTS.TEXT}
               />
               <DataTableColumnFacetedFilterOptions
-                options={usageGroupOptions}
+                options={filterGroups.usageGroup}
                 multiple
               />
               <DataTableColumnPinOptions />
@@ -544,11 +538,11 @@ export default function DeviceTable({
         meta: {
           label: "용도구분",
           variant: FILTER_VARIANTS.SELECT,
-          options: usageGroupOptions,
+          options: filterGroups.usageGroup,
         },
         cell: ({ row }) => {
           const usageGroup = row.getValue("usage_group_id") as string
-          const option = usageGroupOptions.find(opt => opt.value == usageGroup)
+          const option = filterGroups.usageGroup.find((opt: { label: string; value: string; }) => opt.value == usageGroup)
           return <span>{option?.label || usageGroup}</span>
         },
         enableColumnFilter: true,
@@ -582,7 +576,7 @@ export default function DeviceTable({
                 withSeparator={false}
               />
               <DataTableColumnFacetedFilterOptions
-                options={statusGroupOptions}
+                options={filterGroups.statusCode}
                 multiple
               />
               <DataTableColumnPinOptions />
@@ -593,7 +587,7 @@ export default function DeviceTable({
         meta: {
           label: "상태",
           variant: FILTER_VARIANTS.SELECT,
-          options: statusGroupOptions,
+          options: filterGroups.statusCode,
         },
         cell: ({ row }) => (
           <Badge

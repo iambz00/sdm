@@ -11,6 +11,26 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
+class MovablePointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: "onPointerDown" as const,
+      handler: ({ nativeEvent: event }: any, { onActivation }: any) => {
+        if (!event.isPrimary || event.button !== 0) return false;
+
+        const isInteractive = (event.target as Element)?.closest(
+          'button, input, textarea, select, a, [contenteditable="true"]'
+        );
+
+        if (isInteractive) return false;
+
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
+
 interface MovableDivProps {
   children: ReactNode;
   id?: string;
@@ -24,7 +44,7 @@ export function MovableDiv({ children, id = "movable-div" }: MovableDivProps) {
     setMounted(true);
   }, []);
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MovablePointerSensor, {
       activationConstraint: { distance: 8 },
     })
   );

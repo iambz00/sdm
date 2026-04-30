@@ -1,15 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { Code, Device, DeviceLog, Organization, Model, UsageGroup, Distribution, DistributionInfo, Profile } from "../types";
+// import { Code, Device, DeviceLog, Organization, Model, UsageGroup, Distribution, DistributionInfo, Profile } from "../types";
 
 export type FetchType = 'code' | 'device' | 'devicelog' | 'org' | 'model' | 'usageGroup' | 'distribution' | 'distributionInfo' | 'profile'
-export type ReturnType = Code | Device | DeviceLog | Organization | Model | UsageGroup | Distribution | DistributionInfo | Profile
+// export type ReturnType = Code | Device | DeviceLog | Organization | Model | UsageGroup | Distribution | DistributionInfo | Profile
 
-export async function fetchdb<T>(fetchGroup: FetchType[]): Promise<T[]> {
-  const supabase = await createClient();
-  if (T === Code)
-}
-
-export async function fetch(fetchGroup: FetchType[]): Promise<ReturnType[]>{
+export async function fetch(fetchGroup: FetchType[]): Promise<unknown[]>{
   const supabase = await createClient();
   const fetchMap: Record<FetchType, any> = {
     'code'  : supabase.from("codes").select("*")
@@ -36,8 +31,3 @@ export async function fetch(fetchGroup: FetchType[]): Promise<ReturnType[]>{
   return Promise.all(fetchGroup.map(fetchType => fetchMap[fetchType]))
     .then(results => results.map(result => result.data))
 }
-//   const result = await Promise.all(fetchGroup.map(fetchType => fetchMap[fetchType]))
-//     .then(results => results.map(result => result.data))
-
-//   return Object.fromEntries(fetchGroup.map((fetchType, index) => [fetchType, result[index]]))
-// }
