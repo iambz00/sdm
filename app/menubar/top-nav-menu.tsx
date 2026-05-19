@@ -8,10 +8,7 @@ import { DeviceTabletIcon, ListIcon, UsersThreeIcon, DoorOpenIcon, TableIcon, Tr
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, } from "@/components/ui/accordion"
 
-import { ThemeSwitcher } from "@/components/theme-switcher";
-
-import { AuthButton } from "./auth-button";
-import { LogoutButton } from "./logout-button";
+import { AuthButton } from "./auth-buttons";
 
 export const menuStructure = [
   {
@@ -94,8 +91,6 @@ export function TopNavMenu({
       </Menubar>
       <div className="items-center hidden space-x-2 md:flex">
         <AuthButton name={name} role={role}/>
-        <LogoutButton />
-        <ThemeSwitcher />
       </div>
 
       {/* Menu for Mobile device */}
@@ -106,15 +101,8 @@ export function TopNavMenu({
           </SheetTrigger>
           <SheetContent side="right" showCloseButton={false} className="px-4">
             <SheetHeader className="w-full px-0">
-              <SheetTitle className="flex items-center">
-                <div className="flex">
-                  <AuthButton name={name} role={role}/>
-                </div>
-                <div className="flex mx-auto"></div>
-                <div className="flex">
-                  <LogoutButton />
-                  <ThemeSwitcher />
-                </div>
+              <SheetTitle className="flex items-center w-full">
+                <AuthButton name={name} role={role}/>
               </SheetTitle>
             </SheetHeader>
             <Accordion type="multiple" defaultValue={menuStructure.map(menu => menu.title)} className="border">

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LogoutButton } from "./logout-button";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const resolveRole: { [key: string]: string } = {
   "SYSTEM_ADMIN"  : "전체 관리",
@@ -28,16 +30,21 @@ export function AuthButton({
         <Button asChild size="sm" variant={"default"}>
           <Link href="/auth/sign-up">등록</Link>
         </Button>
+        <div className="mx-auto"></div>
+        <ThemeSwitcher />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 mr-4">
+    <div className="flex items-center gap-2 w-full">
       <span className="font-medium">{name}</span>
       <Badge variant="outline" className="text-primary rounded-sm">
         {resolveRole[role]}
       </Badge>
+      <div className="mx-auto"></div>
+      <ThemeSwitcher />
+      <LogoutButton />
     </div>
   );
 }
