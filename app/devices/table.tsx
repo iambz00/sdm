@@ -1,6 +1,5 @@
 "use client";
-
-import { Device, Code, Organization, UsageGroup, Distribution, DistributionInfo } from "@/common/types";
+import type { Device, Code, Organization, UsageGroup, Distribution, DistributionInfo } from "@/common/types";
 import { cn } from "@/lib/utils"
 import { useState, useCallback, useMemo, useEffect } from "react"
 import type { 
@@ -402,7 +401,7 @@ export default function DeviceTable({
           .map((code: Code) => ({ "label": code.name, "value": code.code})),
       "usageGroup":
         watchObject.usageGroup
-          .map((usageGroup: UsageGroup) => ({ "label": usageGroup.name, "value": usageGroup.id})),
+          .map((usageGroup: UsageGroup) => ({ "label": usageGroup.name, "value": usageGroup.id.toString()})),
     }),
     []
   )

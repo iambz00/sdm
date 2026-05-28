@@ -19,7 +19,7 @@ export default async function TopNav() {
   const profile = await getUserAndRole();
 
   return (
-    <nav className="w-full flex justify-center h-14">
+    <nav className="w-full flex justify-center h-14 bg-secondary">
       <div className="w-full max-w-7xl flex justify-between items-center p-3 px-5">
         <TopNavTitle />
         <TopNavMenu name={profile.name} role={profile.role}/>

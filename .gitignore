@@ -15,6 +15,9 @@
 /.next/
 /out/
 
+# every dir starts with dot
+/.*/
+
 # production
 /build
 

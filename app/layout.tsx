@@ -22,13 +22,15 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontNormal.variable, fontMonospace.variable, "font-sans", geist.variable)}
     >
-      <body>
+      <body className="h-dvh overflow-hidden">
         <Suspense>
           <ThemeProvider>
             <TooltipProvider>
-              <TopNav />
-              <div className="w-full pl-6 pr-6">
-                {children}
+              <div className="flex flex-col h-full w-full">
+                <TopNav />
+                <div className="flex-1 overflow-auto px-4 py-1 flex flex-col">
+                  {children}
+                </div>
               </div>
             </TooltipProvider>
           </ThemeProvider>

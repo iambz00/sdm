@@ -85,9 +85,9 @@ export function TableViewMenu<TData>({
       </PopoverTrigger>
       <PopoverContent align="end" className="w-fit p-0">
         <Command>
-          <CommandInput placeholder="Search columns..." />
+          {/* <CommandInput placeholder="Search columns..." /> */}
           <CommandList>
-            <CommandEmpty>No columns found.</CommandEmpty>
+            <CommandEmpty>열 없음</CommandEmpty>
             <CommandGroup>
               {columns.map(column => (
                 <CommandItem

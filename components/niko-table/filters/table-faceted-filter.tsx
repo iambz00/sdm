@@ -268,7 +268,7 @@ export function TableFacetedFilterContent({
     <Command>
       <CommandInput placeholder={title} className="pl-2" />
       <CommandList className="max-h-full">
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>결과 없음</CommandEmpty>
         <CommandGroup className="max-h-75 overflow-x-hidden overflow-y-auto">
           {options.map(option => {
             const isSelected = selectedValues.has(option.value)

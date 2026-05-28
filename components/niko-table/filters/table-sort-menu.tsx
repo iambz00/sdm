@@ -370,7 +370,7 @@ export function TableSortMenu<TData>({
             {sorting.length > 0 && (
               <Badge
                 variant="secondary"
-                className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
+                className="h-[18.24px] rounded-md px-[5.12px] font-mono text-[10.4px] font-normal"
               >
                 {sorting.length}
               </Badge>
@@ -380,13 +380,13 @@ export function TableSortMenu<TData>({
         <PopoverContent
           aria-labelledby={labelId}
           aria-describedby={descriptionId}
-          className="flex w-full max-w-(--radix-popover-content-available-width) origin-(--radix-popover-content-transform-origin) flex-col gap-3.5 p-4 sm:min-w-[380px]"
+          className="flex w-full max-w-(--radix-popover-content-available-width) origin-(--radix-popover-content-transform-origin) flex-col gap-3.5 p-4 sm:min-w-95"
           {...props}
         >
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <h4 id={labelId} className="leading-none font-medium">
-                {sorting.length > 0 ? "Sort by" : "No sorting applied"}
+                {sorting.length > 0 ? "정렬 기준" : "정렬 없음"}
               </h4>
               {sorting.length > 1 && (
                 <Tooltip>
@@ -394,7 +394,7 @@ export function TableSortMenu<TData>({
                     <CircleHelp className="size-3.5 cursor-help text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    The order of fields determines sort priority
+                    오른쪽 아이콘을 드래그하여 우선순위 조정
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -408,12 +408,12 @@ export function TableSortMenu<TData>({
             >
               {sorting.length > 0
                 ? "Modify sorting to organize your rows."
-                : "Add sorting to organize your rows."}
+                : ""}
             </p>
           </div>
           {sorting.length > 0 && (
             <SortableContent asChild>
-              <ul className="flex max-h-[300px] flex-col gap-2 overflow-y-auto p-1">
+              <ul className="flex max-h-75 flex-col gap-2 overflow-y-auto p-1">
                 {sorting.map(sort => (
                   <TableSortItem
                     key={sort.id}
@@ -436,7 +436,7 @@ export function TableSortMenu<TData>({
               onClick={onSortAdd}
               disabled={columns.length === 0}
             >
-              Add sort
+              기준 추가
             </Button>
             {sorting.length > 0 && (
               <Button
@@ -445,7 +445,7 @@ export function TableSortMenu<TData>({
                 className="rounded"
                 onClick={onSortingReset}
               >
-                Reset sorting
+                초기화
               </Button>
             )}
           </div>
@@ -453,7 +453,7 @@ export function TableSortMenu<TData>({
       </Popover>
       <SortableOverlay>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-[180px] rounded-sm bg-primary/10" />
+          <div className="h-8 w-45 rounded-sm bg-primary/10" />
           <div className="h-8 w-24 rounded-sm bg-primary/10" />
           <div className="size-8 shrink-0 rounded-sm bg-primary/10" />
           <div className="size-8 shrink-0 rounded-sm bg-primary/10" />

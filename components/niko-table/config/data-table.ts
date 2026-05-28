@@ -76,8 +76,8 @@ export const SORT_ICONS: Record<SortIconVariant, SortIcons> = {
 
 export const SORT_LABELS: Record<SortIconVariant, SortLabels> = {
   [FILTER_VARIANTS.TEXT]: {
-    asc: "Asc",
-    desc: "Desc",
+    asc: "오름차순",
+    desc: "내림차순",
   },
   [FILTER_VARIANTS.NUMBER]: {
     asc: "Low to High",
@@ -100,12 +100,12 @@ export const SORT_LABELS: Record<SortIconVariant, SortLabels> = {
     desc: "True First",
   },
   [FILTER_VARIANTS.SELECT]: {
-    asc: "Asc",
-    desc: "Desc",
+    asc: "오름차순",
+    desc: "내림차순",
   },
   [FILTER_VARIANTS.MULTI_SELECT]: {
-    asc: "Asc",
-    desc: "Desc",
+    asc: "오름차순",
+    desc: "내림차순",
   },
 }
 
