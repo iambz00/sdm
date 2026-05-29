@@ -27,65 +27,83 @@ export default function DeviceImportBody() {
   const [merges, setMerges] = useState<XLSX.Range[]>([]);
 
   const [currentSheet, setCurrentSheet] = useState<string>();
-  const [range, setRange] = useState({ start: 0, end: 0 });
-
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
 
   async function fileHandler(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
 
     /* get data as an ArrayBuffer */
     const file = e.target.files[0];
+    if (!file) return;
+    setWorkBook(undefined);
+    setData([]);
+    setMerges([]);
+    setCurrentSheet(undefined);
+
     const fileData = await file.arrayBuffer();
 
-    setWorkBook(XLSX.read(fileData, { dense: true }))
+    const wb = XLSX.read(fileData, { dense: true, cellDates: true });
+    setWorkBook(wb);
+
+    setSelected(Object.fromEntries(wb.SheetNames.map((sheetName) => [sheetName, false])));
   }
 
   function sheetHandler(e: React.MouseEvent<HTMLButtonElement>) {
     const sheetName = e.currentTarget.textContent
-    if (!sheetName) return;
-    if (e.ctrlKey && !e.shiftKey) {
-      
+    if (!workBook || !sheetName) return;
+
+    if (e.ctrlKey) {
+      setSelected(prevSelected => ({
+        ...prevSelected,
+        [sheetName]: !prevSelected[sheetName]
+      }));
     }
-
-    const ws = workBook?.Sheets[sheetName];
-    if (!ws) return;
-
-    if (e.shiftKey && currentSheet) {
-      var start = workBook.SheetNames.indexOf(currentSheet);
-      var end = workBook.SheetNames.indexOf(sheetName as string);
-      setRange({ start: Math.min(start, end), end: Math.max(start, end) })
+    else if (e.shiftKey && currentSheet) {
+      var [start, end] = [workBook.SheetNames.indexOf(currentSheet), workBook.SheetNames.indexOf(sheetName as string)]
+      if (start > end) [start, end] = [end, start]
+      setSelected(Object.fromEntries(workBook.SheetNames.map((sheetName, idx) => [sheetName, (start <= idx && idx <= end)])));
     }
-    setCurrentSheet(sheetName);
+    else {
+      const ws = workBook.Sheets[sheetName];
+      if (!ws) return;
+      setCurrentSheet(sheetName);
+      /* Convert to JSON (2D Array) */
+      const jsonData = XLSX.utils.sheet_to_json(ws, { 
+        header: 1, 
+        defval: null,     // 빈 셀을 null로 채워 sparse array 방지
+      }) as any[][];
 
-    /* Convert to JSON (2D Array) */
-    const jsonData = XLSX.utils.sheet_to_json(ws, { 
-      header: 1, 
-      defval: null,     // 빈 셀을 null로 채워 sparse array 방지
-    }) as any[][];
-
-    if (jsonData.length > 0) {
-      const lastValidIndex = jsonData.reduceRight((found, curr, idx) => (found==-1 && curr.length > 0)? idx : found, -1)
-      setData(jsonData.slice(0, lastValidIndex+1));
-      setMerges(ws['!merges'] || []);
+      if (jsonData.length > 0) {
+        const lastValidIndex = jsonData.reduceRight((found, curr, idx) => (found==-1 && curr.length > 0)? idx : found, -1)
+        setData(jsonData.slice(0, lastValidIndex+1));
+        setMerges(ws['!merges'] || []);
+      }
     }
   }
+
   return (
     <div className="flex flex-col gap-2 overflow-hidden">
-      <div className="flex-none bg-primary/5 p-1">
-        <Input type="file" className="w-1/2 bg-background" 
-          onChange={fileHandler}
-        />
-        <span className="flex-right w-fit text-xs text-right">
-          시작 시트명 클릭 후 끝 시트명을 시프트 클릭해서 범위 선택
-        </span>
-        <div className="flex flex-wrap gap-1 pt-1">
+      <div className="bg-primary/5 p-1">
+        <div className="flex items-center">
+          <Input type="file" className="min-w-1/3 max-w-3xs bg-background" 
+            onChange={fileHandler}
+          />
+          <div className="flex-1 text-xs text-right">
+            여기에 버튼 배치 - 범위 선택 / 가져오기
+          </div>
+        </div>
+        <div className="py-1">
+          <span className="text-primary text-sm font-bold">가져올 시트 선택</span>
+          <span className="text-xs">(Shift-클릭: 범위 선택, Ctrl-클릭: 개별 선택, 클릭: 시트 내용 확인)</span>
+        </div>
+        <div className="flex flex-wrap gap-1 mt-1">
           {workBook?.SheetNames.map((sheetName, idx) => 
             <Button
               key={sheetName} 
               onClick={sheetHandler}
               variant={`${sheetName == currentSheet ? "default" : "outline"}`}
               className={`h-6 
-                ${range.start <= idx && idx <= range.end ? "border-dotted border-destructive" : ""}
+                ${selected[sheetName] ? "border-dotted border-destructive" : ""}
               `}
             >
               {sheetName}
@@ -138,12 +156,6 @@ export function Tabler({
   return (
     <Table className="border-separate border-spacing-0 border-b border-r [&_th]:border-l [&_th]:border-t [&_td]:border-l [&_td]:border-t">
       <TableHeader>
-        {/* <TableRow className="bg-muted/50 h-8">
-          <TableCell colSpan={maxCols} className="whitespace-pre-line">{JSON.stringify(data)}</TableCell>
-        </TableRow>
-        <TableRow className="bg-muted/50 h-8">
-          <TableCell colSpan={maxCols} className="whitespace-pre-line">{JSON.stringify(merges)}</TableCell>
-        </TableRow> */}
         <TableRow>
           <TableHead className="sticky z-20 top-0 left-0 border-r border-b">
           </TableHead>
@@ -164,8 +176,8 @@ export function Tabler({
               const { rowSpan, colSpan, isHidden } = getCellSpanInfo(i, j);
               if (isHidden) return null;
               return (
-                <TableCell key={j} rowSpan={rowSpan} colSpan={colSpan} className="whitespace-pre">
-                  {cell}
+                <TableCell key={j} rowSpan={rowSpan} colSpan={colSpan} className="whitespace-pre text-xs">
+                  {cell instanceof Date ? cell.toLocaleDateString() : cell}
                 </TableCell>
               );
             })}

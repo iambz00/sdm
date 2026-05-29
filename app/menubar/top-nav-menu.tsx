@@ -25,6 +25,7 @@ export const menuStructure = [
     items: [
       { path: "/orgs", title: "조직 조회" },
       { path: "/orgs/groups", title: "그룹 관리" },
+      { path: "/devices/import", title: "기기 일괄 입력"}
     ]
   },
   {
