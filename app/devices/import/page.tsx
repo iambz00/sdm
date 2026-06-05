@@ -1,20 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, useTransition } from "react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table"
+import {
+  Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card"
+import { Toggle } from "@/components/ui/toggle"
+import { ArrowSquareInIcon } from "@phosphor-icons/react"
+
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 /* load the codepage support library for extended support with older formats  */
 // import { set_cptable } from "xlsx";
@@ -25,6 +44,8 @@ export default function DeviceImportBody() {
   const [workBook, setWorkBook] = useState<XLSX.WorkBook>();
   const [data, setData] = useState<any[][]>([]);
   const [merges, setMerges] = useState<XLSX.Range[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const [showOption, setShowOption] = useState(false);
 
   const [currentSheet, setCurrentSheet] = useState<string>();
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -66,59 +87,113 @@ export default function DeviceImportBody() {
     else {
       const ws = workBook.Sheets[sheetName];
       if (!ws) return;
+      
+      // 현재 선택 시트 표시를 먼저 업데이트하여 UI 반응성 확보
       setCurrentSheet(sheetName);
-      /* Convert to JSON (2D Array) */
-      const jsonData = XLSX.utils.sheet_to_json(ws, { 
-        header: 1, 
-        defval: null,     // 빈 셀을 null로 채워 sparse array 방지
-      }) as any[][];
 
-      if (jsonData.length > 0) {
-        const lastValidIndex = jsonData.reduceRight((found, curr, idx) => (found==-1 && curr.length > 0)? idx : found, -1)
-        setData(jsonData.slice(0, lastValidIndex+1));
-        setMerges(ws['!merges'] || []);
-      }
+      // 무거운 작업은 Transition으로 감싸서 로딩 상태(isPending)를 유도
+      startTransition(() => {
+        const jsonData = XLSX.utils.sheet_to_json(ws, { 
+          header: 1, 
+          defval: null,
+        }) as any[][];
+
+        if (jsonData.length > 0) {
+          const lastValidIndex = jsonData.reduceRight((found, curr, idx) => (found==-1 && curr.length > 0)? idx : found, -1)
+          setData(jsonData.slice(0, lastValidIndex+1));
+          setMerges(ws['!merges'] || []);
+        }
+      });
     }
   }
 
   return (
-    <div className="flex flex-col gap-2 overflow-hidden">
-      <div className="bg-primary/5 p-1">
-        <div className="flex items-center">
-          <Input type="file" className="min-w-1/3 max-w-3xs bg-background" 
-            onChange={fileHandler}
-          />
-          <div className="flex-1 text-xs text-right">
-            여기에 버튼 배치 - 범위 선택 / 가져오기
+    <>
+      <div className="flex flex-col gap-2 overflow-hidden">
+        <div className="bg-primary/5 p-1">
+          <div className="flex items-center">
+            <Input type="file" className="min-w-1/3 max-w-3xs bg-background" 
+              onChange={fileHandler}
+            />
+            <div className="flex-1 text-xs text-right">
+              여기에 버튼 배치 - 범위 선택 / 가져오기
+              <Toggle 
+                variant="outline" 
+                className="bg-background" 
+                size="sm"
+                pressed={showOption}
+                onPressedChange={setShowOption}
+              >
+                <ArrowSquareInIcon />
+                가져오기 설정
+              </Toggle>
+            </div>
+          </div>
+          <div className="py-1">
+            <span className="text-primary text-sm font-bold">가져올 시트 선택</span>
+            <span className="text-xs">(Shift-클릭: 범위 선택, Ctrl-클릭: 개별 선택, 클릭: 시트 내용 확인)</span>
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {workBook?.SheetNames.map((sheetName, idx) => 
+              <Button
+                key={sheetName} 
+                onClick={sheetHandler}
+                variant={`${sheetName == currentSheet ? "default" : "outline"}`}
+                className={`h-6 
+                  ${selected[sheetName] ? "border-dotted border-destructive" : ""}
+                `}
+                disabled={isPending}
+              >
+                {sheetName}
+              </Button>
+            )}
           </div>
         </div>
-        <div className="py-1">
-          <span className="text-primary text-sm font-bold">가져올 시트 선택</span>
-          <span className="text-xs">(Shift-클릭: 범위 선택, Ctrl-클릭: 개별 선택, 클릭: 시트 내용 확인)</span>
-        </div>
-        <div className="flex flex-wrap gap-1 mt-1">
-          {workBook?.SheetNames.map((sheetName, idx) => 
-            <Button
-              key={sheetName} 
-              onClick={sheetHandler}
-              variant={`${sheetName == currentSheet ? "default" : "outline"}`}
-              className={`h-6 
-                ${selected[sheetName] ? "border-dotted border-destructive" : ""}
-              `}
-            >
-              {sheetName}
-            </Button>
+        <div className="flex-1 overflow-auto">
+          {isPending ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
+              <Spinner className="size-12 text-primary" />
+              <p className="text-sm font-medium">시트 데이터를 처리하고 있습니다...</p>
+            </div>
+          ) : (
+            <SheetView data={data} merges={merges}/>
           )}
         </div>
+        {showOption && (
+            <Card className="fixed right-10 z-30 w-xs mt-12 shadow-md border border-primary animate-in fade-in zoom-in-95">
+              <CardHeader>
+                <CardTitle>가져오기 설정</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {columnNames.map((name, idx) => (
+                  <ImportOption key={idx}>
+                    {name}
+                  </ImportOption>
+                ))}
+              </CardContent>
+            </Card>
+        )}
       </div>
-      <div className="flex-1 overflow-auto">
-        <Tabler data={data} merges={merges}/>
-      </div>
+    </>
+  )
+}
+
+function ImportOption({
+  children
+}:{
+  children: string
+}) {
+  return (
+    <div className="flex justify-between">
+      <Label htmlFor={children} className="flex-1">
+        {children}
+      </Label>
+      <Input id={children} className="w-2/3" />
     </div>
   )
 }
 
-export function Tabler({
+export function SheetView({
   data,
   merges
 }:{
@@ -176,7 +251,12 @@ export function Tabler({
               const { rowSpan, colSpan, isHidden } = getCellSpanInfo(i, j);
               if (isHidden) return null;
               return (
-                <TableCell key={j} rowSpan={rowSpan} colSpan={colSpan} className="whitespace-pre text-xs">
+                <TableCell key={j} rowSpan={rowSpan} colSpan={colSpan} className="whitespace-pre text-xs"
+                  onClick={(e) => {
+                    const td = e.currentTarget as HTMLTableCellElement;
+                    const tr = td.parentNode as HTMLTableRowElement;
+                    console.log(toXLCol(td.cellIndex-1) + tr.rowIndex)
+                  }}>
                   {cell instanceof Date ? cell.toLocaleDateString() : cell}
                 </TableCell>
               );
@@ -187,3 +267,87 @@ export function Tabler({
     </Table>
   )
 }
+
+
+/*
+행, 컬럼 선택해야 함
+부가정보는 컬럼명까지 입력받아서 선택 - 한글 가능?? 
+시리얼번호가 비어 있는 곳에서 자동 멈춤
+id 인 곳은 추가 기능까지?
+*/
+export interface Device {
+  id: number;
+  revision: number;
+
+  serial_number: string;
+  mac_address: string;
+  asset_number: string;
+
+  model_id: number;
+  distribution_id: number;
+  organization_code: string;
+  status_code: string;
+  usage_code: string;
+  usage_group: string;
+
+  metadata: string;
+
+  created_by: string;
+  updated_by: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
+const columns = [
+  "asset_number",       // [0]
+  "model_id",           // [1]
+  "distribution_id",    // [2]
+  "usage_code",         // [3]
+  "usage_group",        // [4]
+  "serial_number",      // [5]
+  "mac_address",        // [6]
+  "metadata",           // [7]
+  // "organization_code",
+]
+
+const columnNames = [
+  "관리번호",           // [0]
+  "모델명",             // [1]
+  "보급 차수",          // [2]
+  "용도 구분",          // [3]
+  "용도 상세",          // [4]
+  "S/N",                // [5]
+  "WiFi MAC",           // [6]
+  "부가 정보",          // [7]
+]
+
+const bgColors = [
+  "bg-red-foreground",
+  "bg-orange-foreground",
+  "bg-amber-foreground",
+  "bg-yellow-foreground",
+  "bg-lime-foreground",
+  "bg-green-foreground",
+  "bg-emerald-foreground",
+  "bg-teal-foreground",
+  "bg-cyan-foreground",
+  "bg-sky-foreground",
+  "bg-blue-foreground",
+  "bg-indigo-foreground",
+  "bg-violet-foreground",
+  "bg-purple-foreground",
+  "bg-fuchsia-foreground",
+  "bg-pink-foreground",
+  "bg-rose-foreground",
+  // "bg-slate-foreground",
+  // "bg-gray-foreground",
+  // "bg-zinc-foreground",
+  // "bg-neutral-foreground",
+  // "bg-stone-foreground",
+  // "bg-taupe-foreground",
+  // "bg-mauve-foreground",
+  // "bg-mist-foreground",
+  // "bg-olive-foreground",
+]
+//

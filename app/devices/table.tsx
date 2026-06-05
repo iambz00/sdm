@@ -1,5 +1,5 @@
 "use client";
-import type { Device, Code, Organization, UsageGroup, Distribution, DistributionInfo } from "@/common/types";
+import type { Device, Code, Organization, Distribution, DistributionInfo } from "@/common/types";
 import { cn } from "@/lib/utils"
 import { useState, useCallback, useMemo, useEffect } from "react"
 import type { 
@@ -69,32 +69,6 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul",
 })
 
-// Expanded row content component
-function ExpandedRowContent({ device }: { device: Device }) {
-  return (
-    <div className="bg-muted/30 p-4">
-      <div className="space-y-3">
-        <div>
-          <h4 className="mb-2 text-sm font-semibold">최종 수정</h4>
-          <p className="text-sm text-muted-foreground">
-            {new Date(device.updated_at).toLocaleString()}
-          </p>
-        </div>
-        <div>
-          <h4 className="mb-2 text-sm font-semibold">부가 정보</h4>
-            {Object.entries(device.metadata).map(([key, value]) => (
-              <div key={key}>
-                {key}: {value}
-              </div>
-            ))}
-          <div className="flex flex-wrap gap-2">
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // Product details component for sidebar
 function DeviceDetails({
   device,
@@ -106,114 +80,91 @@ function DeviceDetails({
   if (!device) return null
 
   return (
-    <ScrollArea className="h-full">
-      <div className="space-y-4 p-6">
-        <div>
-          <h2 className="text-2xl font-bold">
-            {device.asset_number}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            label
-          </p>
-        </div>
+    <Card className="border-none">
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-lg font-bold">
+            기기 상세 정보
+          </h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        <Separator />
+        <DetailLine title="조직">
+          {resolver.org[device.organization_code] || device.organization_code}
+        </DetailLine>
+        <DetailLine title="관리 번호">
+          {device.asset_number}
+        </DetailLine>
+        <DetailLine title="용도 구분">
+          {resolver.code[device.usage_code] || device.usage_code}
+        </DetailLine>
+        <DetailLine title="용도 상세">
+          {device.usage_group}
+        </DetailLine>
 
         <Separator />
 
-        <div className="space-y-4">
-          <div>
-            <h3 className="mb-2 text-sm font-semibold">기기 상태</h3>
-            <div className="space-y-2 text-sm pl-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">조직:</span>
-                <span className="">{resolver.org[device.organization_code] || device.organization_code}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">용도:</span>
-                <span className="">{resolver.usageGroup[device.usage_group_id] || device.usage_group_id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">상태:</span>
-                <span className="">{resolver.code[device.status_code] || device.status_code}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">부가 정보:</span>
-                <div className="flex items-center gap-1">
-                  <span>{JSON.stringify(device.metadata)}</span>
-                  <span className="text-yellow-500">★</span>
-                </div>
-              </div>
+        <DetailLine title="기기 상태">
+          {resolver.code[device.status_code] || device.status_code}
+        </DetailLine>
+        <DetailLine title="모델명">
+          {resolver.model[device.model_id] || device.model_id}
+        </DetailLine>
+        <DetailLine title="S/N">
+          {device.serial_number}
+        </DetailLine>
+        <DetailLine title="WiFi MAC">
+          {device.mac_address}
+        </DetailLine>
+
+        <Separator />
+
+        <DetailLine title="보급 차수">
+          {resolver.distribution[device.distribution_id] || device.distribution_id}
+        </DetailLine>
+        <DetailLine title="등록일">
+          {DATE_TIME_FORMATTER.format(new Date(device.created_at))}
+        </DetailLine>
+
+        <Separator />
+
+        <DetailLine title="부가 정보">
+          {Object.entries(device.metadata).map(([key, value]) => (
+            <div key={key}>
+              {key}: {value}
             </div>
-          </div>
+          ))}
+        </DetailLine>
+        <Separator />
+        <DetailLine title="최종 수정자">
+          {device.updated_by || "관리자"}
+        </DetailLine>
+        <DetailLine title="최종 수정">
+          {DATE_TIME_FORMATTER.format(new Date(device.updated_at))}
+        </DetailLine>
 
-          <Separator />
+      </CardContent>
+    </Card>
+  )
+}
 
-          <div>
-            <h3 className="mb-2 text-sm font-semibold">세부 정보</h3>
-            <div className="space-y-2 text-sm pl-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">S/N:</span>
-                <span>
-                  {device.serial_number}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">WiFi MAC:</span>
-                <span>
-                  {device.mac_address}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">모델명:</span>
-                <span>
-                  {device.model_id}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">도입 차수:</span>
-                <span>
-                  {device.distribution_id}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">등록일:</span>
-                <span>
-                  {DATE_TIME_FORMATTER.format(new Date(device.created_at))}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">최종 수정자:</span>
-                <span>
-                  {device.updated_by || "관리자"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">최종 수정:</span>
-                <span>
-                  {DATE_TIME_FORMATTER.format(new Date(device.updated_at))}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="mb-2 text-sm font-semibold">도입 정보</h3>
-            <p className="text-sm text-muted-foreground">
-              {device.organization_code}
-            </p>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="mb-2 text-sm font-semibold">Tags</h3>
-            <div className="flex flex-wrap gap-2">
-            </div>
-          </div>
-        </div>
+function DetailLine({
+  title, 
+  children
+}: {
+  title: string,
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex justify-between">
+      <div className="text-muted-foreground">
+        {title}
       </div>
-    </ScrollArea>
+      <div>
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -399,9 +350,15 @@ export default function DeviceTable({
         watchObject.code
           .filter((code: Code) => code.group_code === "GRP_STATUS")
           .map((code: Code) => ({ "label": code.name, "value": code.code})),
+      "usageCode":
+        watchObject.code
+          .filter((code: Code) => code.group_code === "GRP_USAGE")
+          .map((code: Code) => ({ "label": code.name, "value": code.code})),
       "usageGroup":
-        watchObject.usageGroup
-          .map((usageGroup: UsageGroup) => ({ "label": usageGroup.name, "value": usageGroup.id.toString()})),
+        watchObject.device
+          // .filter((device: Device) => )
+          .reduce((acc: Record<string, string>[], curr: Device) => 
+              acc.find(e => e.label === curr.usage_group)? acc : [...acc, { "label": curr.usage_group, "value": curr.usage_group}], [])
     }),
     []
   )
@@ -409,8 +366,15 @@ export default function DeviceTable({
   const FilterParameters: FilterParameter<Device>[] = [
     {
       type: "DataTableFacetedFilter",
-      accessorKey: "usage_group_id",
-      title: "용도구분",
+      accessorKey: "usage_code",
+      title: "용도 구분",
+      options: filterGroups.usageCode,
+      multiple: true,
+    },
+    {
+      type: "DataTableFacetedFilter",
+      accessorKey: "usage_group",
+      title: "용도 상세",
       options: filterGroups.usageGroup,
       multiple: true,
     },
@@ -468,35 +432,6 @@ export default function DeviceTable({
         enableHiding: false,
       },
       {
-        id: SYSTEM_COLUMN_IDS.EXPAND,
-        header: () => null,
-        cell: ({ row }) => {
-          if (!row.getCanExpand()) return null
-          return (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={row.getToggleExpandedHandler()}
-            >
-              {row.getIsExpanded() ? (
-                <CaretDownIcon className="h-4 w-4" />
-              ) : (
-                <CaretRightIcon className="h-4 w-4" />
-              )}
-            </Button>
-          )
-        },
-        size: 50,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          expandedContent: (device: Device) => (
-            <ExpandedRowContent device={device} />
-          ),
-        },
-      },
-      {
         accessorKey: "organization_code",
         header: () => (
           <DataTableColumnHeader className="justify-start">
@@ -517,7 +452,54 @@ export default function DeviceTable({
         accessorFn: (row: Device) => resolver.org[row.organization_code],
       },
       {
-        accessorKey: "usage_group_id",
+        accessorKey: "asset_number",
+        header: () => (
+          <DataTableColumnHeader className="justify-start">
+            <DataTableColumnTitle>관리번호</DataTableColumnTitle>
+            <DataTableColumnActions isActive label="Options">
+              <DataTableColumnSortOptions />
+              <DataTableColumnPinOptions />
+              <DataTableColumnHideOptions />
+            </DataTableColumnActions>
+          </DataTableColumnHeader>
+        ),
+        meta: {
+          label: "관리번호",
+        },
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "usage_code",
+        header: () => (
+          <DataTableColumnHeader className="justify-start">
+            <DataTableColumnTitle />
+            <DataTableColumnActions isActive label="Options">
+              <DataTableColumnSortOptions
+                variant={FILTER_VARIANTS.TEXT}
+              />
+              <DataTableColumnFacetedFilterOptions
+                options={filterGroups.usageCode}
+                multiple
+              />
+              <DataTableColumnPinOptions />
+              <DataTableColumnHideOptions />
+            </DataTableColumnActions>
+          </DataTableColumnHeader>
+        ),
+        meta: {
+          label: "용도 구분",
+          variant: FILTER_VARIANTS.SELECT,
+          options: filterGroups.usageCode,
+        },
+        cell: ({ row }) => {
+          const usageCode = row.getValue("usage_code") as string
+          const option = filterGroups.usageCode.find((opt: { label: string; value: string; }) => opt.value == usageCode)
+          return <span>{option?.label || usageCode}</span>
+        },
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "usage_group",
         header: () => (
           <DataTableColumnHeader className="justify-start">
             <DataTableColumnTitle />
@@ -535,31 +517,9 @@ export default function DeviceTable({
           </DataTableColumnHeader>
         ),
         meta: {
-          label: "용도구분",
+          label: "용도 상세",
           variant: FILTER_VARIANTS.SELECT,
           options: filterGroups.usageGroup,
-        },
-        cell: ({ row }) => {
-          const usageGroup = row.getValue("usage_group_id") as string
-          const option = filterGroups.usageGroup.find((opt: { label: string; value: string; }) => opt.value == usageGroup)
-          return <span>{option?.label || usageGroup}</span>
-        },
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "asset_number",
-        header: () => (
-          <DataTableColumnHeader className="justify-start">
-            <DataTableColumnTitle>관리번호</DataTableColumnTitle>
-            <DataTableColumnActions isActive label="Options">
-              <DataTableColumnSortOptions />
-              <DataTableColumnPinOptions />
-              <DataTableColumnHideOptions />
-            </DataTableColumnActions>
-          </DataTableColumnHeader>
-        ),
-        meta: {
-          label: "관리번호",
         },
         enableColumnFilter: true,
       },
@@ -607,7 +567,7 @@ export default function DeviceTable({
             <div className="flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
+                  <Button variant="ghost" className="h-4 w-4">
                     <DotsThreeOutlineIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -735,14 +695,7 @@ export default function DeviceTable({
                 if (!open) setSelectedDevice(null)
               }}
             >
-              <DataTableAsideContent width="w-1/3 min-w-80">
-                <DataTableAsideHeader>
-                  <DataTableAsideTitle>기기 정보</DataTableAsideTitle>
-                  <DataTableAsideDescription>
-                    {/* View detailed information */}
-                  </DataTableAsideDescription>
-                  {/* <DataTableAsideClose /> */}
-                </DataTableAsideHeader>
+              <DataTableAsideContent width="w-sm min-w-80">
                 <DeviceDetails device={selectedDevice} resolver={resolver} />
               </DataTableAsideContent>
             </DataTableAside>

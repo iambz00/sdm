@@ -21,7 +21,8 @@ export interface Device {
   distribution_id: number;
   organization_code: string;
   status_code: string;
-  usage_group_id: number;
+  usage_code: string;
+  usage_group: string;
 
   metadata: string;
 
@@ -46,7 +47,8 @@ export interface DeviceLog {
   distribution_id: number;
   organization_code: string;
   status_code: string;
-  usage_group_id: number;
+  usage_code: string;
+  usage_group: string;
 
   metadata: string;
 
@@ -67,15 +69,6 @@ export interface Organization {
   path: string;
 
   metadata: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UsageGroup {
-  id: number;
-  organization_code: string;
-  name: string;
-  description: string;
   created_at: string;
   updated_at: string;
 }

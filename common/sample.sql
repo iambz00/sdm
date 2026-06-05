@@ -17,6 +17,11 @@ INSERT INTO codes (code, group_code, name, description, is_active) VALUES
 ('STS_ETC',     'GRP_STATUS', '수리', '수리 입고 등 [기기 없음]', TRUE),
 ('STS_DISPOSED','GRP_STATUS', '파기', '파기되어 없음 [세지 않음]', TRUE),
 
+('USG_CLASS1',  'GRP_USAGE', '일반교실', '학년-반', TRUE),
+('USG_CLASS2',  'GRP_USAGE', '특별교실', '컴퓨터실, 음악실 등', TRUE),
+('USG_ASSIGN',  'GRP_USAGE', '학생배정', '학교 내 배치 및 사용', TRUE),
+('USG_RENTAL',  'GRP_USAGE', '학생대여', '가정 반출 가능', TRUE),
+
 ('VND_SAMSUNG', 'GRP_VENDOR', '삼성전자', '', TRUE),
 ('VND_APPLE',   'GRP_VENDOR', 'Apple', '', TRUE),
 ('VND_LG',      'GRP_VENDOR', 'LG전자', '', TRUE),
@@ -63,14 +68,6 @@ INSERT INTO distributions (year, dist_code, name, description, metadata) VALUES
 (2025, 'DIST_GBE', '경북(24년1차)', '', ''),
 (2025, 'DIST_GBE', '경북(25년1차)', '', ''),
 
--- 5. usage_groups 테이블 샘플 데이터
-INSERT INTO usage_groups (organization_code, name, description) VALUES
-('R100000001', '학급용', '학급에 배치하여 사용'),
-('R100000001', '학생배정', '학생에게 배정하여 학교 내 사용'),
-('R100000001', '학생배부', '학생에게 배부하여 졸업 시 반납'),
-('R100000001', '컴퓨터교육실', ''),
-
-
 -- 6. distribution_info 테이블 샘플 데이터
 INSERT INTO distribution_info (distribution_id, organization_code, model_id, quantity) VALUES
 ((SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), 30),
@@ -80,15 +77,15 @@ INSERT INTO distribution_info (distribution_id, organization_code, model_id, qua
 
 -- 7. devices 테이블 샘플 데이터
 -- (주의: serial_number, mac_address, asset_number는 UNIQUE 제약 조건이 있으므로 고유하게 생성해야 합니다.)
-INSERT INTO devices (serial_number, mac_address, asset_number, model_id, distribution_id, organization_code, status_code, usage_group_id, metadata) VALUES
-('SN_S8_GN01_001', '00:1A:2B:3C:4D:01', 'ASSET_GN01_001', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_NORMAL', (SELECT id FROM usage_groups WHERE name = '1학년 1반' AND organization_code = 'SCH_GANGNAM_01'), '{"class": "1-1", "student_id": "S1001"}'),
-('SN_S8_GN01_002', '00:1A:2B:3C:4D:02', 'ASSET_GN01_002', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_NORMAL', (SELECT id FROM usage_groups WHERE name = '1학년 1반' AND organization_code = 'SCH_GANGNAM_01'), '{"class": "1-1", "student_id": "S1002"}'),
-('SN_S8_GN01_003', '00:1A:2B:3C:4D:03', 'ASSET_GN01_003', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_REPAIR', (SELECT id FROM usage_groups WHERE name = '1학년 1반' AND organization_code = 'SCH_GANGNAM_01'), '{"class": "1-1", "issue": "화면 깨짐"}'),
-('SN_S7FE_GN02_001', '00:1A:2B:3C:4D:04', 'ASSET_GN02_001', (SELECT id FROM models WHERE name = '갤럭시 탭 S7 FE'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_02', 'STS_NORMAL', (SELECT id FROM usage_groups WHERE name = '3학년 2반' AND organization_code = 'SCH_GANGNAM_02'), '{"class": "3-2", "student_id": "M3001"}'),
-('SN_S7FE_GN02_002', '00:1A:2B:3C:4D:05', 'ASSET_GN02_002', (SELECT id FROM models WHERE name = '갤럭시 탭 S7 FE'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_02', 'STS_BROKEN', (SELECT id FROM usage_groups WHERE name = '3학년 2반' AND organization_code = 'SCH_GANGNAM_02'), '{"class": "3-2", "issue": "배터리 불량"}'),
-('SN_IPAD_GD01_001', '00:1A:2B:3C:4D:06', 'ASSET_GD01_001', (SELECT id FROM models WHERE name = 'iPad Air 5세대'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGDONG_01', 'STS_NORMAL', (SELECT id FROM usage_groups WHERE name = '도서관 대여' AND organization_code = 'SCH_GANGDONG_01'), '{"loan_status": "대여 가능"}'),
-('SN_IPAD_GD01_002', '00:1A:2B:3C:4D:07', 'ASSET_GD01_002', (SELECT id FROM models WHERE name = 'iPad Air 5세대'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGDONG_01', 'STS_NORMAL', (SELECT id FROM usage_groups WHERE name = '도서관 대여' AND organization_code = 'SCH_GANGDONG_01'), '{"loan_status": "대여 중", "borrower": "김철수"}'),
-('SN_GRAM_HU01_001', '00:1A:2B:3C:4D:08', 'ASSET_HU01_001', (SELECT id FROM models WHERE name = 'LG Gram 14'), (SELECT id FROM distributions WHERE name = '2024년 부산 교육청 특별 보급'), 'SCH_HAEUNDAE_01', 'STS_NORMAL', NULL, '{"student_id": "H4001", "support_type": "저소득층"}');
+INSERT INTO devices (serial_number, mac_address, asset_number, model_id, distribution_id, organization_code, status_code, usage_code, usage_group, metadata) VALUES
+('SN_S8_GN01_001', '00:1A:2B:3C:4D:01', 'ASSET_GN01_001', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_NORMAL', 'USG_CLASS1', '1-1', '{"class": "1-1", "student_id": "S1001"}'),
+('SN_S8_GN01_002', '00:1A:2B:3C:4D:02', 'ASSET_GN01_002', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_NORMAL', 'USG_CLASS1', '1-1', '{"class": "1-1", "student_id": "S1002"}'),
+('SN_S8_GN01_003', '00:1A:2B:3C:4D:03', 'ASSET_GN01_003', (SELECT id FROM models WHERE name = '갤럭시 탭 S8'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_01', 'STS_REPAIR', 'USG_CLASS1', '1-1', '{"class": "1-1", "issue": "화면 깨짐"}'),
+('SN_S7FE_GN02_001', '00:1A:2B:3C:4D:04', 'ASSET_GN02_001', (SELECT id FROM models WHERE name = '갤럭시 탭 S7 FE'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_02', 'STS_NORMAL', 'USG_CLASS1', '3-2', '{"class": "3-2", "student_id": "M3001"}'),
+('SN_S7FE_GN02_002', '00:1A:2B:3C:4D:05', 'ASSET_GN02_002', (SELECT id FROM models WHERE name = '갤럭시 탭 S7 FE'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGNAM_02', 'STS_BROKEN', 'USG_CLASS1', '3-2', '{"class": "3-2", "issue": "배터리 불량"}'),
+('SN_IPAD_GD01_001', '00:1A:2B:3C:4D:06', 'ASSET_GD01_001', (SELECT id FROM models WHERE name = 'iPad Air 5세대'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGDONG_01', 'STS_NORMAL', 'USG_CLASS2', '도서관', '{"loan_status": "대여 가능"}'),
+('SN_IPAD_GD01_002', '00:1A:2B:3C:4D:07', 'ASSET_GD01_002', (SELECT id FROM models WHERE name = 'iPad Air 5세대'), (SELECT id FROM distributions WHERE name = '2023년 서울 교육청 일반 보급'), 'SCH_GANGDONG_01', 'STS_NORMAL', 'USG_CLASS2', '미술실', '{"loan_status": "대여 중", "borrower": "김철수"}'),
+('SN_GRAM_HU01_001', '00:1A:2B:3C:4D:08', 'ASSET_HU01_001', (SELECT id FROM models WHERE name = 'LG Gram 14'), (SELECT id FROM distributions WHERE name = '2024년 부산 교육청 특별 보급'), 'SCH_HAEUNDAE_01', 'STS_NORMAL', 'USG_RENTAL', '홍길동', '{"student_id": "H4001", "support_type": "저소득층"}');
 
 -- devices_log 테이블은 트리거에 의해 자동으로 채워지므로 별도의 INSERT 문은 필요 없습니다.
 -- 하지만 초기 데이터를 위해 수동으로 삽입할 수도 있습니다. (예시)

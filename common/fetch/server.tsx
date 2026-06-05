@@ -14,7 +14,7 @@ export async function fetch(fetchGroup: FetchType[]): Promise<unknown[]>{
       .order("organization_code", { ascending: true })
       .order("asset_number", { ascending: true })
       .order("status_code", { ascending: true })
-      .order("usage_group_id", { ascending: true }),
+      .order("usage_code", { ascending: true }),
     'devicelog': supabase.from("device_log").select("*")
       .order("device_id", { ascending: true })
       .order("revision", { ascending: false }),
