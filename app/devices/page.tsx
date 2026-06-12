@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { Code, Device, DeviceLog, Organization, Model, Distribution, DistributionInfo } from "@/common/types";
-import {
-  FetchType, fetch
- } from "@/common/fetch/server";
+import { FetchType, fetch } from "@/common/fetch/server";
 
 import DeviceTable from "./table";
 
